@@ -1,26 +1,14 @@
 package com.example.thecssapp.ui.screens.events
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Event
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,18 +16,17 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.thecssapp.ui.theme.TheCSSAppTheme
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.format.TextStyle
-import java.util.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventsScreen(navController: NavController) {
     val events = listOf(
-        Event("CSS Orientation", "2025-07-01", "Auditorium"),
-        Event("Hackathon", "2025-07-10", "Lab 3"),
-        Event("Alumni Meetup", "2025-07-15", "Seminar Hall")
+        Event("Tech Talk: AI in Education","24 Jun", "4:00 PM - 6:00 PM • Auditorium", "Workshop"),
+        Event("Tech Talk: AI in Education","24 Jun", "4:00 PM - 6:00 PM • Auditorium", "Workshop"),
+        Event("Tech Talk: AI in Education","24 Jun", "4:00 PM - 6:00 PM • Auditorium", "Workshop")
     )
 
     Scaffold(
@@ -48,7 +35,7 @@ fun EventsScreen(navController: NavController) {
                 title = { Text("CSS Events") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -56,15 +43,6 @@ fun EventsScreen(navController: NavController) {
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* TODO: Open event creation screen */ },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Event")
-            }
         },
         content = { padding ->
             LazyColumn(
@@ -87,27 +65,92 @@ fun EventCard(event: Event) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(event.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text("Date: ${event.date}", fontSize = 14.sp)
-            Text("Venue: ${event.venue}", fontSize = 14.sp)
+        Row(modifier = Modifier.padding(12.dp)) {
+            // Left: Date box
+            Column(
+                modifier = Modifier
+                    .width(56.dp)
+                    .background(
+                        MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                val parts = event.date.split(" ")
+                val day = parts.getOrNull(0) ?: "--"
+                val month = parts.getOrNull(1) ?: "--"
+
+                Text(
+                    day,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(2.dp)
+                )
+                Text(
+                    month,
+                    fontSize = 12.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Right: Details
+            Column(modifier = Modifier.weight(1f)) {
+                Text(event.title, fontWeight = FontWeight.SemiBold)
+                Text(
+                    event.timePlace,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Tag as a styled label
+                    Text(
+                        event.tag,
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+
+                    // Register Button
+                    Button(
+                        onClick = { /* TODO: Handle registration */ },
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text("Register", fontSize = 12.sp)
+                    }
+                }
+            }
         }
     }
 }
 
+
+
 data class Event(
     val title: String,
-    val date: String,
-    val venue: String
+    val date: String,       // e.g., "01 Jul"
+    val timePlace: String,  // e.g., "10 AM • Lab 3"
+    val tag: String         // e.g., "Hackathon"
 )
 
 
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showSystemUi=true)
 @Composable
 fun EventsPrev(){

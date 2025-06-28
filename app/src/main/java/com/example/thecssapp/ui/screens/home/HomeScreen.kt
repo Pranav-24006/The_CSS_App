@@ -1,18 +1,12 @@
 package com.example.thecssapp.ui.screens.home
 
 import androidx.compose.foundation.*
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AppRegistration
 import androidx.compose.material.icons.filled.AssignmentTurnedIn
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.BorderColor
 import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Draw
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*

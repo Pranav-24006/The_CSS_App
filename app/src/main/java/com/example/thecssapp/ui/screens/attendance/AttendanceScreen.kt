@@ -1,26 +1,22 @@
 package com.example.thecssapp.ui.screens.attendance
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -31,12 +27,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.thecssapp.ui.theme.TheCSSAppTheme
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +42,7 @@ fun AttendanceScreen(navController: NavController) {
                         title = { Text("Attendance Tracker", fontWeight = FontWeight.Bold) },
                         navigationIcon = {
                             IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
@@ -283,12 +273,12 @@ fun SubjectCard(subject: String, percent: Int, bunks: Int) {
 
             // Linear Progress Bar
             LinearProgressIndicator(
-                progress = percent / 100f,
+                progress = { percent / 100f },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp),
+                                .fillMaxWidth()
+                                .height(6.dp),
                 color = attendanceColor,
-                trackColor = MaterialTheme.colorScheme.outlineVariant
+                trackColor = MaterialTheme.colorScheme.outlineVariant,
             )
 
             Spacer(modifier = Modifier.height(6.dp))
