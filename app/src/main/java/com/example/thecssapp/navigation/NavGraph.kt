@@ -1,5 +1,7 @@
 package com.example.thecssapp.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -10,6 +12,7 @@ import com.example.thecssapp.ui.screens.attendance.AttendanceScreen
 import com.example.thecssapp.ui.screens.planner.PlannerScreen
 import com.example.thecssapp.constants.Routes
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     NavHost(navController, startDestination = Routes.HOME) {
