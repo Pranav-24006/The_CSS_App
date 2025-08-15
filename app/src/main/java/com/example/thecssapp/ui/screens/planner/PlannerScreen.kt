@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
@@ -77,6 +78,7 @@ fun PlannerScreen(navController: NavController) {
                 .padding(padding)
                 .padding(16.dp)
         ) {
+            // Calendar stays static
             CalendarHeader(
                 selectedDate = selectedDate,
                 onDateSelected = { selectedDate = it },
@@ -87,17 +89,27 @@ fun PlannerScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text("Today's Schedule", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.weight(1f))
-                TextButton(onClick = { /* Add schedule */ }) {
-                    Text("+ Add")
+            // Schedule list is scrollable
+            Text(
+                "Today's Schedule",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(scheduleItems.size) { index ->
+                    ScheduleCard(scheduleItems[index])
                 }
             }
-
-            scheduleItems.forEach { item -> ScheduleCard(item) }
         }
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -238,7 +250,7 @@ data class ScheduleItem(
 @RequiresApi(Build.VERSION_CODES.O)
 fun PlannerPreview(){
     val navController = rememberNavController()
-    TheCSSAppTheme(darkTheme = false, dynamicColor = false) {
+    TheCSSAppTheme(darkTheme = true, dynamicColor = false) {
         PlannerScreen(navController)
     }
 }
