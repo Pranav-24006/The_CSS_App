@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.thecssapp.data.ScheduleDataStore
+import com.example.thecssapp.data.ScheduleDao
 import com.example.thecssapp.model.ScheduleItem
 import java.time.LocalDate
 import java.time.YearMonth
@@ -38,22 +38,16 @@ import java.util.*
 @Composable
 fun PlannerScreen(
     navController: NavController,
-    dataStore: ScheduleDataStore
+    dao: ScheduleDao
 ) {
     val today = LocalDate.now()
 
     var selectedDate by remember { mutableStateOf(today) }
     var currentMonthYear by remember { mutableStateOf(YearMonth.from(today)) }
 
-    val schedules: List<ScheduleItem> by dataStore.getSchedules()
+    val schedules: List<ScheduleItem> by dao.getSchedules()
         .collectAsState(initial = emptyList())
 
-    /**
-     * FIX 1: PERFORMANCE
-     * The schedule list is now wrapped in `remember`. This prevents the expensive
-     * filtering operation from running on every recomposition, boosting performance.
-     * It will only re-filter when the `schedules` list or `selectedDate` changes.
-     */
     val todaysSchedules = remember(schedules, selectedDate) {
         schedules.filter { it.date == selectedDate.toString() }
     }

@@ -3,7 +3,6 @@ package com.example.thecssapp.ui.screens.planner.addschedule
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,14 +10,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
-import com.example.thecssapp.data.ScheduleDataStore
+import com.example.thecssapp.data.ScheduleDao
 import com.example.thecssapp.model.ScheduleItem
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -26,22 +22,32 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.util.*
+
+/**
+ * ## FIX: A robust time parser that understands multiple formats.
+ * This builder creates a single DateTimeFormatter that can parse both 12-hour (h:mm a)
+ * and 24-hour (H:mm) time formats. This is much safer than nested try-catch blocks.
+ */
+@RequiresApi(Build.VERSION_CODES.O)
+private val timeParser = DateTimeFormatterBuilder()
+    .appendOptional(DateTimeFormatter.ofPattern("h:mm a"))  // For formats like "2:30 PM"
+    .appendOptional(DateTimeFormatter.ofPattern("H:mm"))    // For formats like "14:30"
+    .toFormatter(Locale.US) // Use a specific Locale for AM/PM consistency
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddScheduleScreen(navController: NavController, dataStore: ScheduleDataStore) {
+fun AddScheduleScreen(navController: NavController, dao: ScheduleDao) {
     var title by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(LocalDate.now()) }
-    // The time state will now be set by the picker
     var time by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
     var tag by remember { mutableStateOf("Class") }
     var extra by remember { mutableStateOf("") }
 
     var showDatePicker by remember { mutableStateOf(false) }
-    // ## UX IMPROVEMENT: State to control the new Time Picker dialog
-    var showTimePicker by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -50,7 +56,6 @@ fun AddScheduleScreen(navController: NavController, dataStore: ScheduleDataStore
         initialSelectedDateMillis = date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     )
 
-    // Show Date Picker Dialog
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -58,7 +63,9 @@ fun AddScheduleScreen(navController: NavController, dataStore: ScheduleDataStore
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let {
-                            date = Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                            date = Instant.ofEpochMilli(it)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
                         }
                         showDatePicker = false
                     }
@@ -71,35 +78,6 @@ fun AddScheduleScreen(navController: NavController, dataStore: ScheduleDataStore
             DatePicker(state = datePickerState)
         }
     }
-
-    // ## UX IMPROVEMENT: Show the new Time Picker Dialog
-    if (showTimePicker) {
-        val now = LocalTime.now()
-        val timePickerState = rememberTimePickerState(
-            initialHour = now.hour,
-            initialMinute = now.minute,
-            is24Hour = false // Use AM/PM format
-        )
-
-        TimePickerDialog(
-            state = timePickerState,
-            onDismiss = { showTimePicker = false },
-            onConfirm = {
-                // Format the selected time into a user-friendly string
-                val hour = timePickerState.hour
-                val minute = timePickerState.minute
-                val amPm = if (hour < 12) "AM" else "PM"
-                val formattedHour = when {
-                    hour == 0 -> 12
-                    hour > 12 -> hour - 12
-                    else -> hour
-                }
-                time = String.format("%d:%02d %s", formattedHour, minute, amPm)
-                showTimePicker = false
-            }
-        )
-    }
-
 
     Scaffold(
         topBar = {
@@ -143,15 +121,12 @@ fun AddScheduleScreen(navController: NavController, dataStore: ScheduleDataStore
             }
 
             item {
-                // ## UX IMPROVEMENT: This field now opens the Time Picker
                 OutlinedTextField(
                     value = time,
-                    onValueChange = {}, // Value is set by the picker
-                    label = { Text("Time") },
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showTimePicker = true } // Open the dialog on click
+                    onValueChange = { time = it },
+                    label = { Text("Time (e.g., 14:30 or 2:30 PM)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
             }
 
@@ -178,7 +153,9 @@ fun AddScheduleScreen(navController: NavController, dataStore: ScheduleDataStore
                         onValueChange = {},
                         label = { Text("Tag") },
                         readOnly = true,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isTagMenuExpanded) },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isTagMenuExpanded)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .menuAnchor()
@@ -213,31 +190,41 @@ fun AddScheduleScreen(navController: NavController, dataStore: ScheduleDataStore
             item {
                 Button(
                     onClick = {
-                        // ## CLEANUP: Removed the complex time format validation.
-                        // We only need to check if a time has been selected.
                         when {
                             title.isBlank() -> {
                                 Toast.makeText(context, "Title cannot be empty", Toast.LENGTH_SHORT).show()
                             }
                             time.isBlank() -> {
-                                Toast.makeText(context, "Please select a time", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Please enter a time", Toast.LENGTH_SHORT).show()
                             }
                             location.isBlank() -> {
                                 Toast.makeText(context, "Location cannot be empty", Toast.LENGTH_SHORT).show()
                             }
                             else -> {
-                                val newItem = ScheduleItem(
-                                    id = System.currentTimeMillis(),
-                                    title = title.trim(),
-                                    date = date.toString(),
-                                    time = time,
-                                    location = location.trim(),
-                                    tag = tag,
-                                    extra = extra.trim()
-                                )
-                                coroutineScope.launch {
-                                    dataStore.addSchedule(newItem)
-                                    navController.popBackStack()
+                                val parseResult = runCatching {
+                                    LocalTime.parse(time.trim().uppercase(), timeParser)
+                                }
+
+                                if (parseResult.isSuccess) {
+                                    val parsedTime = parseResult.getOrThrow()
+                                    val formattedTime = parsedTime.format(DateTimeFormatter.ofPattern("h:mm a"))
+
+                                    // CHANGE: Create the item without an ID. Room generates it.
+                                    val newItem = ScheduleItem(
+                                        title = title.trim(),
+                                        date = date.toString(),
+                                        time = formattedTime,
+                                        location = location.trim(),
+                                        tag = tag,
+                                        extra = extra.trim()
+                                    )
+                                    coroutineScope.launch {
+                                        // CHANGE: Use the dao to save the new item
+                                        dao.addSchedule(newItem)
+                                        navController.popBackStack()
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Invalid time format", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -247,59 +234,6 @@ fun AddScheduleScreen(navController: NavController, dataStore: ScheduleDataStore
                         .padding(top = 8.dp)
                 ) {
                     Text("Save")
-                }
-            }
-        }
-    }
-}
-
-
-/**
- * ## UX IMPROVEMENT: A reusable dialog composable to host the TimePicker.
- * This keeps the main screen composable cleaner.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TimePickerDialog(
-    state: TimePickerState,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            shape = MaterialTheme.shapes.extraLarge,
-            tonalElevation = 6.dp,
-            modifier = Modifier
-                .width(IntrinsicSize.Min)
-                .height(IntrinsicSize.Min)
-                .background(
-                    shape = MaterialTheme.shapes.extraLarge,
-                    color = MaterialTheme.colorScheme.surface
-                ),
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp),
-                    text = "Select Time",
-                    style = MaterialTheme.typography.labelMedium
-                )
-                TimePicker(state = state)
-                Row(
-                    modifier = Modifier
-                        .height(40.dp)
-                        .fillMaxWidth()
-                ) {
-                    Spacer(modifier = Modifier.weight(1f))
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
-                    TextButton(onClick = onConfirm) { Text("OK") }
                 }
             }
         }

@@ -1,10 +1,12 @@
 package com.example.thecssapp.model
 
-import kotlinx.serialization.Serializable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Serializable
+@Entity(tableName = "schedules") // Define the table name for Room
 data class ScheduleItem(
-    val id: Long,
+    @PrimaryKey(autoGenerate = true) // Let Room handle creating a unique ID
+    val id: Long = 0,
     val title: String,
     val date: String,
     val time: String,

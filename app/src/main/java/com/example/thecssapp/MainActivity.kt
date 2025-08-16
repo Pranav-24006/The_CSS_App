@@ -17,8 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.thecssapp.constants.Routes
+import com.example.thecssapp.data.AppDatabase
 import com.example.thecssapp.data.StudentProfileDataStore
-import com.example.thecssapp.data.ScheduleDataStore
 import com.example.thecssapp.ui.components.BottomNavBar
 import com.example.thecssapp.ui.screens.attendance.AttendanceScreen
 import com.example.thecssapp.ui.screens.events.EventsScreen
@@ -35,10 +35,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
+        val dao = AppDatabase.getDatabase(this).scheduleDao()
         // Create DataStores once and reuse across screens
         val profileDataStore = StudentProfileDataStore(applicationContext)
-        val scheduleDataStore = ScheduleDataStore(applicationContext)
 
         setContent {
             val navController = rememberNavController()
@@ -80,7 +79,7 @@ class MainActivity : ComponentActivity() {
                             composable(Routes.EVENTS) { EventsScreen(navController) }
                             composable(Routes.ATTENDANCE) { AttendanceScreen(navController) }
                             composable(Routes.PLANNER) {
-                                PlannerScreen(navController, scheduleDataStore)
+                                PlannerScreen(navController, dao)
                             }
                             composable(Routes.EVENT_DETAILS) { backStackEntry ->
                                 val eventId =
@@ -89,7 +88,7 @@ class MainActivity : ComponentActivity() {
                                 EventDetailScreen(eventId, navController)
                             }
                             composable(Routes.ADD_SCHEDULE) {
-                                AddScheduleScreen(navController, scheduleDataStore)
+                                AddScheduleScreen(navController, dao)
                             }
                         }
                     }
