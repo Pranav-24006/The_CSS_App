@@ -1,4 +1,14 @@
 package com.example.thecssapp.model
 
-class ScheduleItem {
-}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ScheduleItem(
+    val id: Long,
+    val title: String,
+    val date: String,
+    val time: String,
+    val location: String,
+    val tag: String,
+    val extra: String
+)

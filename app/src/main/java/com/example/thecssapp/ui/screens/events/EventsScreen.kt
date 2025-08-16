@@ -1,13 +1,11 @@
 package com.example.thecssapp.ui.screens.events
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -15,17 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.example.thecssapp.constants.Routes
-import com.example.thecssapp.ui.screens.attendance.AttendanceScreen
-import com.example.thecssapp.ui.screens.planner.PlannerScreen
+import com.example.thecssapp.model.Event
 import com.example.thecssapp.ui.theme.TheCSSAppTheme
-
-data class Event(
-    val id: Int,
-    val title: String,
-    val imageUrl: String,
-    val category: String
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,12 +22,49 @@ fun EventsScreen(navController: NavController) {
     // Sample Data
     val allEvents = remember {
         listOf(
-            Event(1, "Tech Talk 2025", "https://picsum.photos/300", "Technical"),
-            Event(2, "CSS Fest", "https://picsum.photos/301", "Fest"),
-            Event(3, "Design Workshop", "https://picsum.photos/302", "Workshop"),
-            Event(4, "Startup Meetup", "https://picsum.photos/303", "Networking")
+            Event(
+                id = 1,
+                title = "Tech Talk 2025",
+                imageUrl = "https://picsum.photos/300",
+                category = "Technical",
+                description = "A deep dive into future tech.",
+                location = "Auditorium Hall",
+                date = "2025-09-01",
+                price = 0.0
+            ),
+            Event(
+                id = 2,
+                title = "CSS Fest",
+                imageUrl = "https://picsum.photos/301",
+                category = "Fest",
+                description = "Annual cultural and tech fest.",
+                location = "Campus Grounds",
+                date = "2025-09-15",
+                price = 50.0
+            ),
+            Event(
+                id = 3,
+                title = "Design Workshop",
+                imageUrl = "https://picsum.photos/302",
+                category = "Workshop",
+                description = "Hands-on workshop for designers.",
+                location = "Lab 2",
+                date = "2025-09-10",
+                price = 20.0
+            ),
+            Event(
+                id = 4,
+                title = "Startup Meetup",
+                imageUrl = "https://picsum.photos/303",
+                category = "Networking",
+                description = "Meet investors and founders.",
+                location = "Conference Hall",
+                date = "2025-09-20",
+                price = 0.0
+            )
         )
     }
+
     val galleryImages = remember {
         listOf(
             "https://picsum.photos/400",
@@ -162,17 +188,20 @@ fun PopularEventCard(event: Event, onClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(8.dp)
             )
+            Text(
+                text = event.date,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+            )
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun EventPrev() {
     val navController = rememberNavController()
-    // Pass a safe static dataset for preview mode
-    CompositionLocalProvider {
-        TheCSSAppTheme(darkTheme = true, dynamicColor = false) {
-            EventsScreen(navController)
-        }
+    TheCSSAppTheme(darkTheme = true, dynamicColor = false) {
+        EventsScreen(navController)
     }
 }

@@ -7,4 +7,6 @@ object Routes {
     const val EVENTS = "events"
     const val ATTENDANCE = "attendance"
     const val PLANNER = "planner"
+    const val EVENT_DETAILS = "eventDetail/{eventId}"
+    const val ADD_SCHEDULE = "addSchedule"
 }
